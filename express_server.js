@@ -35,10 +35,15 @@ app.get('/', (req, res) => {
 });
 
 app.get('/urls', (req, res) => {
-  console.log(req)
   const templateVars = { urls: urlDatabase };
   res.render('urls_index', templateVars);
 });
+
+app.post('/urls/:shortURL/delete', (req, res) => {
+  const shortURL = req.params.shortURL;
+  delete urlDatabase[shortURL];
+  res.redirect('/urls')
+})
 
 app.post('/urls', (req, res) => {
   const shortURL = generateRandomString();
@@ -61,7 +66,7 @@ app.get('/urls/:shortURL', (req, res) => { //colon means req.params will contain
 app.get('/u/:shortURL', (req, res) => {
   const longURL = urlDatabase[req.params.shortURL];
   res.redirect(longURL);
-})
+});
 
 
 app.get('/hello', (req, res) => {
