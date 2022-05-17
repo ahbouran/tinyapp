@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 const PORT = 8080;
 
-const createShortURL = function generateRandomString() {
+function generateRandomString() {
   let randomString = [];
   const characters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 1, 2, 3, 4, 5, 6, 7, 8, 9, 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
   
@@ -24,29 +24,39 @@ const urlDatabase = {
   '9sm5xK': 'http://www.google.com'
 };
 
-app.post('/urls', (req, res) => {
-  console.log('request body:', req.body);
-  res.send('Ok');
-})
-
 app.get('/', (req, res) => {
   res.send('Hello!');
 });
 
 app.get('/urls', (req, res) => {
+  console.log(req)
   const templateVars = { urls: urlDatabase };
   res.render('urls_index', templateVars);
+});
+
+app.post('/urls', (req, res) => {
+  const shortURL = generateRandomString();
+  urlDatabase[shortURL] = req.body.longURL
+  //console.log('urlDatabase: ', urlDatabase)
+  res.redirect(`/urls/${shortURL}`);
 });
 
 app.get('/urls/new', (req, res) => {
   res.render('urls_new');
 });
 
-app.get('/urls/:shortURL', (req, res) => { 
+
+app.get('/urls/:shortURL', (req, res) => { //colon means req.params will contain a key called the rest of the text
   const shortURL = req.params.shortURL;
   const templateVars = { shortURL, longURL: urlDatabase[shortURL] };
   res.render('urls_show', templateVars)
 });
+
+app.get('/u/:shortURL', (req, res) => {
+  const longURL = urlDatabase[req.params.shortURL];
+  res.redirect(longURL);
+})
+
 
 app.get('/hello', (req, res) => {
   res.send('<html><body>Hello <b>World</b></body></html>\n');
