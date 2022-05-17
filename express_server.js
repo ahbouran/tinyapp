@@ -1,6 +1,10 @@
 const express = require('express');
+const morgan = require('morgan');
 const app = express();
 const PORT = 8080;
+
+app.use(morgan('dev'));
+
 
 function generateRandomString() {
   let randomString = [];
@@ -14,6 +18,8 @@ function generateRandomString() {
   randomString = randomString.join('');
   return randomString;
 };
+
+
 
 app.set('view engine', 'ejs');
 const bodyParser = require('body-parser');
