@@ -5,6 +5,11 @@ const PORT = 8080;
 
 app.use(morgan('dev'));
 
+app.set('view engine', 'ejs');
+
+const bodyParser = require('body-parser');
+app.use(bodyParser.urlencoded({extended: true}));
+
 
 function generateRandomString() {
   let randomString = [];
@@ -19,11 +24,6 @@ function generateRandomString() {
   return randomString;
 };
 
-
-
-app.set('view engine', 'ejs');
-const bodyParser = require('body-parser');
-app.use(bodyParser.urlencoded({extended: true}));
 
 const urlDatabase = {
   'b2xVn2': 'http://www.lighthouselabs.ca',
@@ -63,10 +63,17 @@ app.get('/urls/:shortURL', (req, res) => { //colon means req.params will contain
   res.render('urls_show', templateVars)
 });
 
+app.post('/urls/:id', (req, res) => {
+  const id = req.params.id;
+  urlDatabase[id] = req.body.updatedURL
+  res.redirect('/urls');
+})
+
 app.get('/u/:shortURL', (req, res) => {
   const longURL = urlDatabase[req.params.shortURL];
   res.redirect(longURL);
 });
+
 
 
 app.get('/hello', (req, res) => {
