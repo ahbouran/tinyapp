@@ -45,12 +45,6 @@ const users = {
   }
 };
 
-
-
-
-
-
-
 app.get('/', (req, res) => {
   res.send('Hello!');
 });
@@ -113,7 +107,25 @@ app.get('/login', (req, res) => {
 })
 
 app.post('/login', (req, res) => {
-  res.cookie('user_id', users[newUserID].id)
+  
+  const email = req.body.email;
+  const password = req.body.password;
+  let id; 
+
+  const compareObjectKeys = function () {
+
+    for (let user in users) {
+      if (email === users[user].email) {
+       if (password !== users[user].password) {
+        return res.status(403).send('Incorrect Password.')
+      } else if (password === users[user].password) {
+          id = users[user].id
+       }
+      }
+    } 
+  }
+  compareObjectKeys()
+  res.cookie('user_id', id)
   res.redirect('/urls');
 });
 
