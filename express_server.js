@@ -1,17 +1,22 @@
+//////////////Requirements/////////////////////////
 const express = require('express');
 const morgan = require('morgan');
 const app = express();
 const PORT = 8080;
+const bodyParser = require('body-parser');
+const cookieParser = require('cookie-parser');
+const { redirect } = require('express/lib/response');
 
-app.use(morgan('dev'));
+///////////////Template////////////////////////////////////////
 
 app.set('view engine', 'ejs');
+/////////////Middleware///////////////////////////////////////
 
-const bodyParser = require('body-parser');
+app.use(morgan('dev'));
 app.use(bodyParser.urlencoded({extended: false}));
-
-const cookieParser = require('cookie-parser')
 app.use(cookieParser());
+
+//////////////Functions///////////////////////////////////////
 
 function generateRandomString() {
   let randomString = [];
@@ -26,10 +31,17 @@ function generateRandomString() {
   return randomString;
 };
 
+/////////////////////Global Data Objects/////////////////////////////////////////////////////////////////
 
 const urlDatabase = {
-  'b2xVn2': 'http://www.lighthouselabs.ca',
-  '9sm5xK': 'http://www.google.com'
+  b6UTxQ: {
+    longURL: "https://www.tsn.ca",
+    userID: "aJ48lW"
+  },
+  i3BoGr: {
+    longURL: "https://www.google.ca",
+    userID: "aJ48lW"
+  }
 };
 
 const users = {
@@ -45,11 +57,17 @@ const users = {
   }
 };
 
+/////////////////////////////ROUTES////////////////////////ROUTES/////////////////ROUTES//////////////////////////////////////
+
+////////"Home Page Greeting"/////////
 app.get('/', (req, res) => {
-  res.send('Hello!');
+  res.send('Hello!'); ////Respond with hello when user solely types in / after localhost http://localhost:8080/
 });
 
-app.get('/urls', (req, res) => {
+
+////////////////////////////////The Shitstorm////////////////////////////////
+
+app.get('/urls', (req, res) => {        ///Passes url data to urls_index template
   const templateVars = { 
     urls: urlDatabase,
     user: users[req.cookies['user_id']]
@@ -58,18 +76,24 @@ app.get('/urls', (req, res) => {
 });
 
 app.post('/urls/:shortURL/delete', (req, res) => {
-  const shortURL = req.params.shortURL;
+  const shortURL = req.params.shortURL
   delete urlDatabase[shortURL];
   res.redirect('/urls')
-})
+});
 
 app.post('/urls', (req, res) => {
   if (req.cookies.user_id === undefined || req.cookies.user_id === null) {
     return res.status(403).send('Please register and/or login first.')
-  }
+  };
   const shortURL = generateRandomString();
-  urlDatabase[shortURL] = req.body.longURL
-  //console.log('urlDatabase: ', urlDatabase)
+  const userID = req.cookies.user_id;
+  const longURL = req.body.longURL;
+  
+  urlDatabase[shortURL] = {
+    longURL,
+    userID
+  };
+
   res.redirect(`/urls/${shortURL}`);
 });
 
@@ -77,7 +101,6 @@ app.get('/urls/new', (req, res) => {
   if (req.cookies.user_id === undefined || req.cookies.user_id === null) {
     return res.redirect('/login')
   }
-
   const templateVars = { 
     user: users[req.cookies['user_id']]
   };
@@ -85,33 +108,41 @@ app.get('/urls/new', (req, res) => {
 });
 
 
-app.get('/urls/:shortURL', (req, res) => { //colon means req.params will contain a key called the rest of the text
-  const shortURL = req.params.shortURL;
+app.get('/urls/:shortURL', (req, res) => { //colon means it's a route parameter, value in this part is available in req.params object
+  const shortURL = req.params.shortURL
   const templateVars = { 
     shortURL, 
-    longURL: urlDatabase[shortURL],
-    user: users[req.cookies['user_id']]
+    longURL: urlDatabase[shortURL].longURL,
+    user: users[req.cookies['user_id']] ////Again, sends data from short url to urls_show.ejs
   };
   res.render('urls_show', templateVars)
 });
 
 app.post('/urls/:id', (req, res) => {
   const id = req.params.id;
-  urlDatabase[id] = req.body.updatedURL
+  const longURL = req.body.updatedURL;
+  const userID = req.cookies.user_id;
+  urlDatabase[id] = {
+    longURL,
+    userID
+  }
   res.redirect('/urls');
-})
+});
+
 
 app.get('/u/:shortURL', (req, res) => {
   const longURL = urlDatabase[req.params.shortURL];
   res.redirect(longURL);
 });
 
+///////////////////////////Login and Logout//////////////////////////////////////
+
 app.get('/login', (req, res) => {
   const templateVars = {
     user: users[req.cookies['user_id']]
   }
   res.render('urls_login', templateVars)
-})
+});
 
 app.post('/login', (req, res) => {
   const email = req.body.email;
@@ -139,12 +170,14 @@ app.post('/logout', (req, res) => {
   res.redirect('/urls');
 });
 
+///////////////////////////Register New Users///////////////////////////////////////
+
 app.get('/register', (req, res) => {
   const templateVars = {
     user: users[req.cookies['user_id']]
   }
   res.render('urls_registration', templateVars)
-})
+});
 
 app.post('/register', (req, res) => {
   if (req.body.email === '' || req.body.password === '') {
@@ -175,14 +208,13 @@ app.post('/register', (req, res) => {
 });
 
 
-app.get('/hello', (req, res) => {
-  res.send('<html><body>Hello <b>World</b></body></html>\n');
-});
+/////////////Catch any errors//////////////////////////////////////////////////////////////////////////
 
 app.get('*', (req, res) => {
-  res.status(404).send('404.')
+  res.status(404).send('404. Try something else.')
 })
 
+/////////////////Server listening in////////////////////////////////
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
