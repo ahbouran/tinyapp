@@ -107,25 +107,22 @@ app.get('/login', (req, res) => {
 })
 
 app.post('/login', (req, res) => {
-  
   const email = req.body.email;
   const password = req.body.password;
   let id; 
-
   const compareObjectKeys = function () {
-
     for (let user in users) {
       if (email === users[user].email) {
        if (password !== users[user].password) {
         return res.status(403).send('Incorrect Password.')
       } else if (password === users[user].password) {
-          id = users[user].id
+          id = users[user].id;
        }
       }
     } 
   }
-  compareObjectKeys()
-  res.cookie('user_id', id)
+  compareObjectKeys();
+  res.cookie('user_id', id);
   res.redirect('/urls');
 });
 
@@ -144,7 +141,7 @@ app.get('/register', (req, res) => {
 
 app.post('/register', (req, res) => {
   if (req.body.email === '' || req.body.password === '') {
-    return res.status(400).send('Bad Request.')
+    return res.status(400).send('Please put in a valid email.')
   }
   
   const newUserID = generateRandomString();
@@ -153,7 +150,7 @@ app.post('/register', (req, res) => {
   const compareObjectKeys = function () {
     for (let user in users) {
       if (req.body.email === users[user].email) {
-        return res.status(400).send('Bad Request.')
+        return res.status(400).send('This email is already in use.')
       }
     }
   };
@@ -176,7 +173,7 @@ app.get('/hello', (req, res) => {
 });
 
 app.get('*', (req, res) => {
-  res.status(404).send('You shall not pass.')
+  res.status(404).send('404.')
 })
 
 
