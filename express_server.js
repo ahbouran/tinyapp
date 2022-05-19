@@ -64,6 +64,9 @@ app.post('/urls/:shortURL/delete', (req, res) => {
 })
 
 app.post('/urls', (req, res) => {
+  if (req.cookies.user_id === undefined || req.cookies.user_id === null) {
+    return res.status(403).send('Please register and/or login first.')
+  }
   const shortURL = generateRandomString();
   urlDatabase[shortURL] = req.body.longURL
   //console.log('urlDatabase: ', urlDatabase)
@@ -71,6 +74,10 @@ app.post('/urls', (req, res) => {
 });
 
 app.get('/urls/new', (req, res) => {
+  if (req.cookies.user_id === undefined || req.cookies.user_id === null) {
+    return res.redirect('/login')
+  }
+
   const templateVars = { 
     user: users[req.cookies['user_id']]
   };
