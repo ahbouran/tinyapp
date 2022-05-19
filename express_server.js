@@ -8,7 +8,7 @@ app.use(morgan('dev'));
 app.set('view engine', 'ejs');
 
 const bodyParser = require('body-parser');
-app.use(bodyParser.urlencoded({extended: false}));
+app.use(bodyParser.urlencoded({extended: true}));
 
 const cookieParser = require('cookie-parser')
 app.use(cookieParser());
@@ -117,6 +117,22 @@ app.get('/register', (req, res) => {
   }
   res.render('urls_registration', templateVars)
 })
+
+app.post('/register', (req, res) => {
+  const newUserID = generateRandomString();
+  const email = req.body.email;
+  const password = req.body.password;
+  const word = req.body.password;
+  user[newUserID] = {
+    id: newUserID,
+    email,
+    password
+  }
+  res.cookie('user_id', newUserID)
+  res.redirect('/urls')
+  res.render('urls_registration')
+});
+
 
 app.get('/hello', (req, res) => {
   res.send('<html><body>Hello <b>World</b></body></html>\n');
