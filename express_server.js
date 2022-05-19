@@ -33,7 +33,16 @@ const urlDatabase = {
 };
 
 const user = {
-  
+  'userRandomID': {
+    id: 'userRandomID',
+    email: 'user@example.com',
+    password: 'purple-monkey-dinosaur'
+  },
+  'user2RandomID' : {
+    id: 'userRandomID',
+    email: 'user2@example.com',
+    password: 'dishwasher-funk'
+  }
 };
 
 app.get('/', (req, res) => {
@@ -98,14 +107,24 @@ app.post('/login', (req, res) => {
 
 app.post('/logout', (req, res) => {
   res.cookie('username', null);
-  console.log('Hello')
   res.clearCookie('username');
   res.redirect('/urls');
 });
 
+app.get('/register', (req, res) => {
+  const templateVars = {
+    username: req.cookies['username']
+  }
+  res.render('urls_registration', templateVars)
+})
+
 app.get('/hello', (req, res) => {
   res.send('<html><body>Hello <b>World</b></body></html>\n');
 });
+
+app.get('*', (req, res) => {
+  res.status(404).send('You shall not pass.')
+})
 
 
 app.listen(PORT, () => {
