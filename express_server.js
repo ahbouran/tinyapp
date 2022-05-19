@@ -8,7 +8,7 @@ app.use(morgan('dev'));
 app.set('view engine', 'ejs');
 
 const bodyParser = require('body-parser');
-app.use(bodyParser.urlencoded({extended: true}));
+app.use(bodyParser.urlencoded({extended: false}));
 
 const cookieParser = require('cookie-parser')
 app.use(cookieParser());
@@ -32,7 +32,7 @@ const urlDatabase = {
   '9sm5xK': 'http://www.google.com'
 };
 
-const user = {
+const users = {
   'userRandomID': {
     id: 'userRandomID',
     email: 'user@example.com',
@@ -45,6 +45,12 @@ const user = {
   }
 };
 
+
+
+
+
+
+
 app.get('/', (req, res) => {
   res.send('Hello!');
 });
@@ -52,7 +58,7 @@ app.get('/', (req, res) => {
 app.get('/urls', (req, res) => {
   const templateVars = { 
     urls: urlDatabase,
-    username: req.cookies['username']
+    user: users[req.cookies['user_id']]
   };
   res.render('urls_index', templateVars);
 });
@@ -72,7 +78,7 @@ app.post('/urls', (req, res) => {
 
 app.get('/urls/new', (req, res) => {
   const templateVars = { 
-    username: req.cookies['username']
+    user: users[req.cookies['user_id']]
   };
   res.render('urls_new', templateVars);
 });
@@ -83,7 +89,7 @@ app.get('/urls/:shortURL', (req, res) => { //colon means req.params will contain
   const templateVars = { 
     shortURL, 
     longURL: urlDatabase[shortURL],
-    username: req.cookies['username']
+    user: users[req.cookies['user_id']]
   };
   res.render('urls_show', templateVars)
 });
@@ -99,38 +105,57 @@ app.get('/u/:shortURL', (req, res) => {
   res.redirect(longURL);
 });
 
+app.get('/login', (req, res) => {
+  const templateVars = {
+    user: users[req.cookies['user_id']]
+  }
+  res.render('urls_login', templateVars)
+})
+
 app.post('/login', (req, res) => {
-  const value = req.body.username;
-  res.cookie('username', value);
+  res.cookie('user_id', users[newUserID].id)
   res.redirect('/urls');
 });
 
 app.post('/logout', (req, res) => {
-  res.cookie('username', null);
-  res.clearCookie('username');
+  res.cookie('user_id', null);
+  res.clearCookie('user_id');
   res.redirect('/urls');
 });
 
 app.get('/register', (req, res) => {
   const templateVars = {
-    username: req.cookies['username']
+    user: users[req.cookies['user_id']]
   }
   res.render('urls_registration', templateVars)
 })
 
 app.post('/register', (req, res) => {
+  if (req.body.email === '' || req.body.password === '') {
+    return res.status(400).send('Bad Request.')
+  }
+  
   const newUserID = generateRandomString();
   const email = req.body.email;
+  
+  const compareObjectKeys = function () {
+    for (let user in users) {
+      if (req.body.email === users[user].email) {
+        return res.status(400).send('Bad Request.')
+      }
+    }
+  };
+  compareObjectKeys()
+
   const password = req.body.password;
-  const word = req.body.password;
-  user[newUserID] = {
+  
+  users[newUserID] = {
     id: newUserID,
     email,
     password
   }
-  res.cookie('user_id', newUserID)
+  res.cookie('user_id', users[newUserID].id)
   res.redirect('/urls')
-  res.render('urls_registration')
 });
 
 
