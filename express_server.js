@@ -7,7 +7,7 @@ const bodyParser = require("body-parser");
 const cookieSession =require('cookie-session');
 const bcrypt = require('bcryptjs');
 const { redirect } = require("express/lib/response");
-
+const { getUserByEmail } = require('./helpers.js')
 ///////////////Template////////////////////////////////////////
 
 app.set("view engine", "ejs");
@@ -34,8 +34,6 @@ function generateRandomString() {
   randomString = randomString.join("");
   return randomString;
 }
-
-
 
 /////////////////////Global Data Objects/////////////////////////////////////////////////////////////////
 
@@ -194,9 +192,8 @@ app.post("/login", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
 
-
   for (let user in users) {
-    if (email === users[user].email && bcrypt.compareSync(password, users[user].password)) {
+    if (getUserByEmail(email, users) && bcrypt.compareSync(password, users[user].password)) {
       req.session.user_id = users[user].id;
       return res.redirect("/urls");
     }
@@ -218,6 +215,7 @@ app.get("/register", (req, res) => {
   res.render("urls_registration", templateVars);
 });
 
+
 app.post("/register", (req, res) => {
   if (req.body.email === "" || req.body.password === "") {
     return res.status(400).send("Please put in a valid email.");
@@ -226,14 +224,11 @@ app.post("/register", (req, res) => {
   const newUserID = generateRandomString();
   const email = req.body.email;
 
-  const compareObjectKeys = function () {
-    for (let user in users) {
-      if (req.body.email === users[user].email) {
-        return res.status(400).send("This email is already in use.");
-      }
-    }
-  };
-  compareObjectKeys();
+
+  if (getUserByEmail(email, users)) {
+    return res.status(400).send("This email is already in use.");
+  }
+
   const password = req.body.password;
   const salt = bcrypt.genSaltSync(10);
   const hash = bcrypt.hashSync(password, salt)
