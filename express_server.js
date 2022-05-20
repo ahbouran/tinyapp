@@ -5,6 +5,7 @@ const app = express();
 const PORT = 8080;
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
+const bcrypt = require('bcryptjs');
 const { redirect } = require("express/lib/response");
 
 ///////////////Template////////////////////////////////////////
@@ -20,69 +21,7 @@ app.use(cookieParser());
 
 function generateRandomString() {
   let randomString = [];
-  const characters = [
-    "a",
-    "b",
-    "c",
-    "d",
-    "e",
-    "f",
-    "g",
-    "h",
-    "i",
-    "j",
-    "k",
-    "l",
-    "m",
-    "n",
-    "o",
-    "p",
-    "q",
-    "r",
-    "s",
-    "t",
-    "u",
-    "v",
-    "w",
-    "x",
-    "y",
-    "z",
-    1,
-    2,
-    3,
-    4,
-    5,
-    6,
-    7,
-    8,
-    9,
-    "A",
-    "B",
-    "C",
-    "D",
-    "E",
-    "F",
-    "G",
-    "H",
-    "I",
-    "J",
-    "K",
-    "L",
-    "M",
-    "N",
-    "O",
-    "P",
-    "Q",
-    "R",
-    "S",
-    "T",
-    "U",
-    "V",
-    "W",
-    "X",
-    "Y",
-    "Z",
-  ];
+  const characters = ["a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z",1,2,3,4,5,6,7,8,9,"A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z"];
 
   for (let j = 0; j < 60; j++) {
     randomString.push(characters[Math.floor(Math.random() * 60)]);
@@ -127,7 +66,7 @@ app.get("/", (req, res) => {
   res.send("Hello!"); ////Respond with hello when user solely types in / after localhost http://localhost:8080/
 });
 
-////////////////////////////////The Shitstorm/////////////////////////////////////////
+////////////////////////////////The Fray/////////////////////////////////////////
 
 app.get("/urls", (req, res) => {
   ///Passes url data to urls_index template
@@ -138,7 +77,7 @@ app.get("/urls", (req, res) => {
 
   const loggedInId = req.cookies.user_id;
   
- 
+ console.log('users:', users)
   let userURLs = {};
 
   for (let smallURLS in urlDatabase) {
@@ -250,11 +189,11 @@ app.get("/login", (req, res) => {
 app.post("/login", (req, res) => {
   const email = req.body.email;
   const password = req.body.password;
-  let id;
+
 
   for (let user in users) {
-    if (email === users[user].email && password === users[user].password) {
-      res.cookie("user_id", id);
+    if (email === users[user].email && bcrypt.compareSync(password, users[user].password)) {
+      res.cookie("user_id", users[user].id);
       return res.redirect("/urls");
     }
   }
@@ -292,13 +231,14 @@ app.post("/register", (req, res) => {
     }
   };
   compareObjectKeys();
-
   const password = req.body.password;
+  const salt = bcrypt.genSaltSync(10);
+  const hash = bcrypt.hashSync(password, salt)
 
   users[newUserID] = {
     id: newUserID,
     email,
-    password
+    password: hash
   };
 
   res.cookie("user_id", newUserID);
